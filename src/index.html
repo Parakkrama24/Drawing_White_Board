@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canvas Board</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M5 18.5 17.6 5.9a2.1 2.1 0 0 1 3 3L8 21.5H4.5v-3Z"/><path d="m15.5 8 3 3"/></svg>
+        </div>
+        <div><h1>Canvas Board</h1><p>Untitled board</p></div>
+      </div>
+      <div class="history-actions">
+        <button id="undoBtn" class="icon-btn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled><span>↶</span></button>
+        <button id="redoBtn" class="icon-btn" title="Redo (Ctrl+Y)" aria-label="Redo" disabled><span>↷</span></button>
+        <span class="divider"></span>
+        <button id="clearBtn" class="text-btn danger" title="Clear board">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2m3 0-1 15H6L5 6m4 4v7m6-7v7"/></svg> Clear
+        </button>
+      </div>
+      <div class="export-actions">
+        <button id="importBtn" class="text-btn secondary">
+          <svg viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M5 21h14"/></svg> Import image
+        </button>
+        <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+        <div class="export-menu-wrap">
+          <button id="exportBtn" class="text-btn primary">
+            <svg viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M5 20h14"/></svg> Export <span class="chevron">⌄</span>
+          </button>
+          <div id="exportMenu" class="popover export-menu" hidden>
+            <button data-export="png"><span class="file-badge blue">PNG</span><span><strong>Export image</strong><small>High-quality PNG file</small></span></button>
+            <button data-export="pdf"><span class="file-badge red">PDF</span><span><strong>Export document</strong><small>Print-ready PDF file</small></span></button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="toolbar" aria-label="Drawing tools">
+        <button class="tool active" data-tool="select" title="Select / move images (V)"><svg viewBox="0 0 24 24"><path d="m5 3 14 9-7 2-3 7L5 3Z"/></svg><span>Select</span></button>
+        <button class="tool" data-tool="pen" title="Pen (P)"><svg viewBox="0 0 24 24"><path d="m4 20 4.5-1L19 8.5a2.1 2.1 0 0 0-3-3L5.5 16 4 20Z"/><path d="m14.5 7 3 3"/></svg><span>Pen</span></button>
+        <button class="tool" data-tool="brush" title="Brush (B)"><svg viewBox="0 0 24 24"><path d="M14 4c3-3 5-2 6-1s2 3-1 6l-8 8-4-4 7-9Z"/><path d="M7 13c-3 0-4 2-4 5 2-1 3 1 6-1l2-2"/></svg><span>Brush</span></button>
+        <button class="tool" data-tool="eraser" title="Eraser (E)"><svg viewBox="0 0 24 24"><path d="m7 21-4-4L15 5a2.8 2.8 0 0 1 4 4L7 21Z"/><path d="m10 10 5 5M7 21h13"/></svg><span>Eraser</span></button>
+        <span class="toolbar-divider"></span>
+        <button class="tool" data-tool="line" title="Line (L)"><svg viewBox="0 0 24 24"><path d="M5 19 19 5"/></svg><span>Line</span></button>
+        <button class="tool" data-tool="rectangle" title="Rectangle (R)"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1"/></svg><span>Square</span></button>
+        <button class="tool" data-tool="circle" title="Circle (C)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg><span>Circle</span></button>
+        <button class="tool" data-tool="triangle" title="Triangle (T)"><svg viewBox="0 0 24 24"><path d="m12 4 9 16H3L12 4Z"/></svg><span>Triangle</span></button>
+        <button class="tool" data-tool="arrow" title="Arrow (A)"><svg viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></svg><span>Arrow</span></button>
+      </aside>
+
+      <section class="canvas-area">
+        <div class="canvas-card" id="canvasCard">
+          <canvas id="board" aria-label="Drawing canvas"></canvas>
+          <div id="emptyHint" class="empty-hint">
+            <div class="hint-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/></svg></div>
+            <strong>Start creating</strong>
+            <span>Choose a tool and draw, or import an image</span>
+          </div>
+        </div>
+        <div class="statusbar">
+          <span id="statusText">Ready</span>
+          <span><kbd>Ctrl</kbd> + <kbd>Z</kbd> Undo</span>
+          <span><kbd>Del</kbd> Remove selected image</span>
+        </div>
+        <nav class="page-dock" aria-label="Page navigation">
+          <button id="previousPageBtn" class="page-nav-btn" title="Previous page" aria-label="Previous page" disabled>‹</button>
+          <strong id="pageCounter" aria-live="polite">1 / 1</strong>
+          <button id="nextPageBtn" class="page-nav-btn" title="Next page" aria-label="Next page" disabled>›</button>
+          <span class="page-dock-divider"></span>
+          <button id="addPageBtn" class="add-page-btn" title="Add a new page" aria-label="Add a new page">
+            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            <span>New page</span>
+          </button>
+        </nav>
+      </section>
+
+      <aside class="properties">
+        <section>
+          <h2>Canvas</h2>
+          <label>Background</label>
+          <div class="swatches" id="backgroundSwatches">
+            <button class="swatch active" data-bg="#ffffff" style="--swatch:#ffffff" title="White"></button>
+            <button class="swatch" data-bg="#0b5d3b" style="--swatch:#0b5d3b" title="Green board"></button>
+            <button class="swatch" data-bg="#121417" style="--swatch:#121417" title="Black board"></button>
+            <button class="custom-swatch" id="customBgBtn" title="Custom background"><span>+</span></button>
+            <input id="backgroundColor" type="color" value="#ffffff" hidden>
+          </div>
+        </section>
+        <section>
+          <h2>Stroke</h2>
+          <label>Color</label>
+          <div class="swatches compact" id="strokeSwatches">
+            <button class="swatch active" data-color="#20242c" style="--swatch:#20242c"></button>
+            <button class="swatch" data-color="#e5484d" style="--swatch:#e5484d"></button>
+            <button class="swatch" data-color="#2563eb" style="--swatch:#2563eb"></button>
+            <button class="swatch" data-color="#16a36a" style="--swatch:#16a36a"></button>
+            <button class="swatch" data-color="#f59e0b" style="--swatch:#f59e0b"></button>
+            <button class="custom-swatch" id="customStrokeBtn" title="Custom stroke"><span>+</span></button>
+            <input id="strokeColor" type="color" value="#20242c" hidden>
+          </div>
+          <div class="control-row"><label for="strokeWidth">Size</label><output id="sizeValue">4 px</output></div>
+          <input id="strokeWidth" type="range" min="1" max="48" value="4">
+          <div id="brushStyleGroup" class="field-group">
+            <label for="brushStyle">Brush style</label>
+            <select id="brushStyle">
+              <option value="round">Soft round</option>
+              <option value="marker">Marker</option>
+              <option value="calligraphy">Calligraphy</option>
+              <option value="neon">Neon glow</option>
+            </select>
+          </div>
+        </section>
+        <section id="selectionPanel" hidden>
+          <h2>Selection</h2>
+          <p class="muted">Image selected. Drag to reposition it.</p>
+          <button id="deleteBtn" class="wide-danger">Delete selected image</button>
+        </section>
+        <section class="tips">
+          <h2>Quick tips</h2>
+          <p>Hold <kbd>Shift</kbd> while drawing a rectangle or circle for a perfect shape.</p>
+        </section>
+      </aside>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
